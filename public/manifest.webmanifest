@@ -1,0 +1,11 @@
+{
+  "name": "데이로그",
+  "short_name": "데이로그",
+  "description": "음식, 수면, 기분, 건강 상태와 소비를 함께 기록합니다.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f9f6",
+  "theme_color": "#718d80",
+  "lang": "ko",
+  "icons": []
+}
