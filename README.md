@@ -42,6 +42,10 @@ python -m uvicorn main:app --reload --port 8000
 
 충분한 기록이 쌓이면 `POST /api/train`으로 Logistic Regression 모델을 학습하고, `POST /api/predict/impulse`로 충동 구매 위험을 예측합니다.
 
+## 기술 문서
+
+- [기능·기술 명세서](docs/기능명세서.md)
+
 ## 외부 ML API 배포
 
 1. Render에서 이 저장소의 `render.yaml` Blueprint를 배포합니다.
