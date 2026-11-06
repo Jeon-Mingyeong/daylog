@@ -64,6 +64,8 @@ textarea { min-height: 82px; resize: vertical; }
 .section-title { margin-bottom: 6px; }
 .section-title p { margin: 0; color: #9aa49f; font-size: 13px; }
 .section-title h2 { margin-top: 2px; font-size: 22px; }
+.demo-actions { display: flex; gap: 8px; }
+.demo-actions button { border: 1px solid #dfe5df; border-radius: 10px; padding: 9px 12px; color: #63766d; background: #fff; font-size: 12px; font-weight: 700; }
 .empty-state { min-height: 360px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: 1px dashed #dfe4de; border-radius: 16px; background: #fff; }
 .empty-state > span { font-size: 36px; }.empty-state h2 { margin: 12px 0 5px; }.empty-state p { margin: 0 0 18px; color: #98a29e; font-size: 13px; }
 .empty-state button { border: 0; border-radius: 9px; padding: 10px 14px; color: #fff; background: #718d80; }

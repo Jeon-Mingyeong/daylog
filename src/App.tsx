@@ -23,6 +23,7 @@ type Entry = {
 }
 
 const storageKey = 'daylog.entries.v1'
+const demoStorageKey = 'daylog.demo.v1'
 const moods = [
   { name: '아주 좋음', icon: '☀️' },
   { name: '좋음', icon: '😊' },
@@ -41,6 +42,51 @@ function loadEntries(): Entry[] {
   } catch {
     return []
   }
+}
+
+function createDemoEntries(): Entry[] {
+    const foods = [
+      '귀리 스무디와 요거트',
+      '닭가슴살 샐러드',
+      '비빔밥과 과일',
+      '연어 덮밥과 스무디',
+      '토스트와 바나나',
+      '두부 김치찌개',
+    ]
+    const moods = ['좋음', '아주 좋음', '보통', '좋음', '아주 좋음', '불안함', '보통']
+    const spending = [
+      { item: '유산균 스무디', amount: 6800, category: '식비', purpose: '아침 식사 대용', necessary: true },
+      { item: '온라인 티셔츠', amount: 39000, category: '쇼핑', purpose: '기분 전환용 충동 구매', necessary: false },
+      { item: '헬스용 요거트', amount: 12500, category: '식비', purpose: '식단 관리에 필요', necessary: true },
+      { item: '충전용 책', amount: 18000, category: '문화', purpose: '관심 분야 독서', necessary: true },
+      { item: '세일 운동화', amount: 78000, category: '쇼핑', purpose: '예전부터 필요했던 운동화', necessary: true },
+      { item: '디저트와 커피', amount: 14500, category: '식비', purpose: '지친 오후 기분 전환', necessary: false },
+      { item: '채소 도시락', amount: 9200, category: '식비', purpose: '점심 식사', necessary: true },
+    ]
+
+    return Array.from({ length: 14 }, (_, index) => {
+      const date = new Date()
+      date.setDate(date.getDate() - index)
+      const spendingIndex = index % spending.length
+      const hasSpending = index % 3 !== 2
+
+      return {
+        id: `demo-${index}-${date.getTime()}`,
+        date: date.toISOString().slice(0, 10),
+        food: foods[index % foods.length],
+        sleepTime: index % 4 === 0 ? '00:30' : index % 4 === 1 ? '23:45' : '22:50',
+        wakeTime: index % 4 === 0 ? '07:45' : '07:00',
+        mood: moods[index % moods.length],
+        health: 5 + (index % 5),
+        note: index % 4 === 0 ? '늦게 잠들었지만 오전에는 집중이 잘됐다.' : '',
+        spending: hasSpending
+          ? {
+              ...spending[spendingIndex],
+              necessary: index % 7 === 1 ? false : spending[spendingIndex].necessary,
+            }
+          : null,
+      }
+    })
 }
 
 function App() {
@@ -122,6 +168,21 @@ function App() {
 
   function deleteEntry(id: string) {
     setEntries((current) => current.filter((entry) => entry.id !== id))
+  }
+
+  function addDemoEntries() {
+    const demos = createDemoEntries()
+    setEntries((current) => {
+      const withoutDemos = current.filter((entry) => !entry.id.startsWith('demo-'))
+      return [...demos, ...withoutDemos]
+    })
+    localStorage.setItem(demoStorageKey, 'true')
+    setActiveTab('history')
+  }
+
+  function removeDemoEntries() {
+    setEntries((current) => current.filter((entry) => !entry.id.startsWith('demo-')))
+    localStorage.removeItem(demoStorageKey)
   }
 
   return (
@@ -237,6 +298,12 @@ function App() {
       {activeTab === 'history' && (
         <section className="content">
           <div className="section-title"><p>최근 기록</p><h2>나의 하루들</h2></div>
+          <div className="demo-actions">
+            <button type="button" onClick={addDemoEntries}>14일 데모 데이터 만들기</button>
+            {entries.some((entry) => entry.id.startsWith('demo-')) && (
+              <button type="button" onClick={removeDemoEntries}>데모 데이터 삭제</button>
+            )}
+          </div>
           {entries.length === 0 ? (
             <div className="empty-state"><span>🌱</span><h2>아직 기록이 없어요</h2><p>오늘의 하루를 첫 번째 기록으로 남겨보세요.</p><button onClick={() => setActiveTab('today')}>기록 시작하기</button></div>
           ) : entries.map((entry) => (

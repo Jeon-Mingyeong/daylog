@@ -36,4 +36,16 @@ describe('Daylog', () => {
     await user.click(screen.getByRole('button', { name: '분석' }))
     expect(screen.getByText(/최소 3일 이상의 기록이 필요합니다/)).toBeInTheDocument()
   })
+
+  it('creates fourteen demo entries for pattern exploration', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: /^기록/ }))
+    await user.click(screen.getByRole('button', { name: '14일 데모 데이터 만들기' }))
+
+    const stored = JSON.parse(localStorage.getItem('daylog.entries.v1') ?? '[]')
+    expect(stored).toHaveLength(14)
+    expect(screen.getByRole('button', { name: '데모 데이터 삭제' })).toBeInTheDocument()
+  })
 })
