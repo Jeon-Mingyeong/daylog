@@ -29,3 +29,15 @@ npm run build
 ```
 
 `main` 브랜치에 푸시하면 GitHub Actions가 린트, 테스트, 빌드를 실행한 뒤 GitHub Pages에 배포합니다.
+
+## Python ML API
+
+개인별 예측 모델은 [backend/README.md](backend/README.md)의 FastAPI 서버로 실행할 수 있습니다.
+
+```bash
+cd backend
+python -m pip install -r requirements.txt
+python -m uvicorn main:app --reload --port 8000
+```
+
+충분한 기록이 쌓이면 `POST /api/train`으로 Logistic Regression 모델을 학습하고, `POST /api/predict/impulse`로 충동 구매 위험을 예측합니다.
