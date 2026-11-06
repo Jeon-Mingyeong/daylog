@@ -17,8 +17,10 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 BASE_DIR = Path(__file__).resolve().parent
-DATABASE_PATH = BASE_DIR / "daylog.db"
-MODEL_PATH = BASE_DIR / "impulse_model.joblib"
+DATA_DIR = Path(os.getenv("DAYLOG_DATA_DIR", str(BASE_DIR)))
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+DATABASE_PATH = DATA_DIR / "daylog.db"
+MODEL_PATH = DATA_DIR / "impulse_model.joblib"
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):

@@ -41,3 +41,11 @@ python -m uvicorn main:app --reload --port 8000
 ```
 
 충분한 기록이 쌓이면 `POST /api/train`으로 Logistic Regression 모델을 학습하고, `POST /api/predict/impulse`로 충동 구매 위험을 예측합니다.
+
+## 외부 ML API 배포
+
+1. Render에서 이 저장소의 `render.yaml` Blueprint를 배포합니다.
+2. 생성된 API URL을 GitHub 저장소의 `Actions secrets`에 `VITE_API_URL` 이름으로 등록합니다.
+3. `main`에 Push하거나 GitHub Actions의 `Build, test, and deploy` 워크플로우를 실행합니다.
+
+프론트 빌드에는 `VITE_API_URL`이 포함됩니다. 호스팅 URL을 등록하지 않으면 API 연동 없이 로컬 기록 기능만 동작합니다.
