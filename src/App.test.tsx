@@ -48,4 +48,17 @@ describe('Daylog', () => {
     expect(stored).toHaveLength(14)
     expect(screen.getByRole('button', { name: '데모 데이터 삭제' })).toBeInTheDocument()
   })
+
+  it('shows concrete pattern metrics after demo data is added', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: /^기록/ }))
+    await user.click(screen.getByRole('button', { name: '14일 데모 데이터 만들기' }))
+    await user.click(screen.getByRole('button', { name: '분석' }))
+
+    expect(screen.getByText('평균 수면')).toBeInTheDocument()
+    expect(screen.getByText('좋은 기분일 건강')).toBeInTheDocument()
+    expect(screen.getByText(/충동 구매로 기록한 소비가/)).toBeInTheDocument()
+  })
 })

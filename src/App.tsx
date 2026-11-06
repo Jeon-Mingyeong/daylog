@@ -119,15 +119,45 @@ function App() {
         unnecessaryCount: 0,
         positiveCount: 0,
         averageHealth: 0,
+        averageSleep: 0,
+        positiveHealth: 0,
+        otherHealth: 0,
+        impulsiveSpent: 0,
+        topCategory: '없음',
       }
     }
 
     const spendingEntries = entries.filter((entry) => entry.spending)
+    const positiveEntries = entries.filter((entry) => ['아주 좋음', '좋음'].includes(entry.mood))
+    const otherEntries = entries.filter((entry) => !['아주 좋음', '좋음'].includes(entry.mood))
+    const averageHealthFor = (items: Entry[]) =>
+      items.length === 0 ? 0 : items.reduce((sum, entry) => sum + entry.health, 0) / items.length
+    const sleepMinutes = entries.map((entry) => {
+      const [sleepHour, sleepMinute] = entry.sleepTime.split(':').map(Number)
+      const [wakeHour, wakeMinute] = entry.wakeTime.split(':').map(Number)
+      let total = (wakeHour * 60 + wakeMinute) - (sleepHour * 60 + sleepMinute)
+      if (total < 0) total += 24 * 60
+      return total
+    })
+    const averageSleepMinutes = sleepMinutes.reduce((sum, minutes) => sum + minutes, 0) / sleepMinutes.length
+    const impulsive = spendingEntries.filter((entry) => !entry.spending?.necessary)
+    const categoryTotals = spendingEntries.reduce<Record<string, number>>((totals, entry) => {
+      const categoryName = entry.spending?.category ?? '기타'
+      totals[categoryName] = (totals[categoryName] ?? 0) + (entry.spending?.amount ?? 0)
+      return totals
+    }, {})
+    const topCategory = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '없음'
+
     return {
       totalSpent: spendingEntries.reduce((sum, entry) => sum + (entry.spending?.amount ?? 0), 0),
       unnecessaryCount: spendingEntries.filter((entry) => !entry.spending?.necessary).length,
-      positiveCount: entries.filter((entry) => ['아주 좋음', '좋음'].includes(entry.mood)).length,
+      positiveCount: positiveEntries.length,
       averageHealth: entries.reduce((sum, entry) => sum + entry.health, 0) / entries.length,
+      averageSleep: averageSleepMinutes / 60,
+      positiveHealth: averageHealthFor(positiveEntries),
+      otherHealth: averageHealthFor(otherEntries),
+      impulsiveSpent: impulsive.reduce((sum, entry) => sum + (entry.spending?.amount ?? 0), 0),
+      topCategory,
     }
   }, [entries])
 
@@ -329,13 +359,20 @@ function App() {
             <article><span>💚</span><small>평균 건강</small><strong>{insights.averageHealth.toFixed(1)} / 10</strong></article>
             <article><span>💳</span><small>기록된 소비</small><strong>{insights.totalSpent.toLocaleString()}원</strong></article>
           </div>
+          {entries.length >= 3 && (
+            <div className="stat-grid pattern-grid">
+              <article><span>🌙</span><small>평균 수면</small><strong>{insights.averageSleep.toFixed(1)}시간</strong></article>
+              <article><span>😊</span><small>좋은 기분일 건강</small><strong>{insights.positiveHealth.toFixed(1)} / 10</strong></article>
+              <article><span>🧾</span><small>가장 큰 소비</small><strong>{insights.topCategory}</strong></article>
+            </div>
+          )}
           <div className="insight-card">
             <span className="insight-icon">🔍</span>
             <div>
               <h2>지금 읽을 수 있는 패턴</h2>
               <p>{entries.length < 3
                 ? '분석의 정확도를 높이려면 최소 3일 이상의 기록이 필요합니다.'
-                : `좋은 기분을 기록한 날은 ${insights.positiveCount}일입니다. 반복되는 패턴은 식사와 수면 기록이 쌓일수록 더 정확해집니다.`}</p>
+                : `좋은 기분을 기록한 날은 ${insights.positiveCount}일이고, 그날의 평균 건강 점수는 ${insights.positiveHealth.toFixed(1)}점입니다. 다른 기분의 건강 점수는 ${insights.otherHealth.toFixed(1)}점입니다. 평균 수면은 ${insights.averageSleep.toFixed(1)}시간입니다.`}</p>
             </div>
           </div>
           <div className="insight-card warm">
@@ -344,7 +381,7 @@ function App() {
               <h2>충동 구매 체크</h2>
               <p>{insights.unnecessaryCount === 0
                 ? '아직 충동 구매로 표시된 소비 기록이 없습니다.'
-                : `충동 구매로 기록한 소비가 ${insights.unnecessaryCount}건 있습니다. 구매 이유와 기분을 함께 보면 감정과 소비의 관계를 볼 수 있습니다.`}</p>
+                : `충동 구매로 기록한 소비가 ${insights.unnecessaryCount}건이며 합계는 ${insights.impulsiveSpent.toLocaleString()}원입니다. 가장 많이 기록된 소비 카테고리는 '${insights.topCategory}'입니다.`}</p>
             </div>
           </div>
           <p className="privacy-note">🔒 기록은 이 기기의 브라우저에만 저장되며 외부로 전송되지 않습니다.</p>
