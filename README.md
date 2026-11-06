@@ -53,3 +53,9 @@ python -m uvicorn main:app --reload --port 8000
 3. `main`에 Push하거나 GitHub Actions의 `Build, test, and deploy` 워크플로우를 실행합니다.
 
 프론트 빌드에는 `VITE_API_URL`이 포함됩니다. 호스팅 URL을 등록하지 않으면 API 연동 없이 로컬 기록 기능만 동작합니다.
+
+## Notion 연동
+
+FastAPI 서버에 `NOTION_TOKEN`, `NOTION_DATABASE_ID` 환경변수를 설정하면 분석 화면의 `Notion 데이터 가져오기`와 `Notion으로 내보내기` 기능을 사용할 수 있습니다.
+
+현재 MVP는 브라우저마다 생성한 로컬 사용자 ID로 서버 기록을 구분합니다. 로그인 인증과 사용자별 권한 검증은 추가 구현 대상입니다.

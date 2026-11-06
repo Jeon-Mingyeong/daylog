@@ -11,6 +11,40 @@ python -m uvicorn main:app --reload --port 8000
 
 API documentation: `http://localhost:8000/docs`
 
+## Notion integration
+
+Set these server environment variables:
+
+```text
+NOTION_TOKEN=secret_or_oauth_access_token
+NOTION_DATABASE_ID=notion_database_id
+DAYLOG_DATA_DIR=/optional/persistent/data/directory
+```
+
+The Notion database should contain these properties for import and export:
+
+```text
+이름: title
+날짜: date
+음식: rich_text
+취침: rich_text
+기상: rich_text
+카테고리: select
+금액: number
+필요한 소비: checkbox
+구매 목적: rich_text
+메모: rich_text
+기분: select
+건강: number
+```
+
+Endpoints:
+
+- `POST /api/notion/import`
+- `POST /api/notion/export`
+
+Requests use the `X-User-ID` header to isolate server records. The MVP generates a random browser user ID; it is not authentication.
+
 ## Render deployment
 
 The repository includes `render.yaml` at the project root.

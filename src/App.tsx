@@ -25,6 +25,16 @@ type Entry = {
 const storageKey = 'daylog.entries.v1'
 const demoStorageKey = 'daylog.demo.v1'
 const apiBaseUrl = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? ''
+const userIdStorageKey = 'daylog.user.id.v1'
+
+function getUserId() {
+  let userId = localStorage.getItem(userIdStorageKey)
+  if (!userId) {
+    userId = crypto.randomUUID()
+    localStorage.setItem(userIdStorageKey, userId)
+  }
+  return userId
+}
 
 type PredictionResult = {
   impulse_probability: number
@@ -37,6 +47,11 @@ type TrainingResult = {
   trained: boolean
   training_rows: number
   estimated_accuracy: number
+}
+type NotionResult = {
+  imported?: number
+  exported?: number
+  user_id: string
 }
 const moods = [
   { name: '아주 좋음', icon: '☀️' },
@@ -107,7 +122,10 @@ async function postJson(path: string, body?: unknown, method: 'GET' | 'POST' = '
   if (!apiBaseUrl || typeof fetch === 'undefined') return null
   const response = await fetch(`${apiBaseUrl}${path}`, {
     method,
-    headers: method === 'GET' ? undefined : { 'Content-Type': 'application/json' },
+    headers: {
+      'X-User-ID': getUserId(),
+      ...(method === 'GET' ? {} : { 'Content-Type': 'application/json' }),
+    },
     body: body === undefined ? undefined : JSON.stringify(body),
   })
   if (!response.ok) {
@@ -138,6 +156,8 @@ function toApiEntry(entry: Entry) {
     amount: entry.spending?.amount ?? 0,
     necessary: entry.spending?.necessary ?? null,
     purpose: entry.spending?.purpose ?? null,
+    note: entry.note,
+    userId: getUserId(),
   }
 }
 
@@ -163,6 +183,8 @@ function App() {
   const [predictionError, setPredictionError] = useState('')
   const [trainingResult, setTrainingResult] = useState<TrainingResult | null>(null)
   const [trainingError, setTrainingError] = useState('')
+  const [notionResult, setNotionResult] = useState<NotionResult | null>(null)
+  const [notionError, setNotionError] = useState('')
 
   useEffect(() => {
     localStorage.setItem(storageKey, JSON.stringify(entries))
@@ -300,6 +322,17 @@ function App() {
       if (result) setTrainingResult(result)
     } catch (error) {
       setTrainingError(error instanceof Error ? error.message : '모델을 학습할 수 없습니다.')
+    }
+  }
+
+  async function syncNotion(action: 'import' | 'export') {
+    setNotionResult(null)
+    setNotionError('')
+    try {
+      const result = await postJson(`/api/notion/${action}`, {}) as NotionResult | null
+      if (result) setNotionResult(result)
+    } catch (error) {
+      setNotionError(error instanceof Error ? error.message : 'Notion과 동기화할 수 없습니다.')
     }
   }
 
@@ -487,6 +520,16 @@ function App() {
               <button type="button" className="train-button" onClick={() => void trainPersonalModel()}>
                 개인 모델 학습하기
               </button>
+              <div className="notion-actions">
+                <button type="button" onClick={() => void syncNotion('import')}>Notion 데이터 가져오기</button>
+                <button type="button" onClick={() => void syncNotion('export')}>Notion으로 내보내기</button>
+              </div>
+              {notionResult && (
+                <p className="model-result">
+                  Notion 동기화 완료 · 가져오기 {notionResult.imported ?? 0}건 / 내보내기 {notionResult.exported ?? 0}건
+                </p>
+              )}
+              {notionError && <p className="api-note">{notionError}</p>}
               {trainingResult && (
                 <p className="model-result">
                   학습 완료 · {trainingResult.training_rows}개 기록 · 추정 정확도 {Math.round(trainingResult.estimated_accuracy * 100)}%

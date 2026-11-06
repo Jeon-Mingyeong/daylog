@@ -31,3 +31,10 @@ def test_impulse_prediction_returns_probability() -> None:
     result = response.json()
     assert 0 <= result["impulse_probability"] <= 1
     assert result["level"] in {"낮음", "주의", "높음"}
+
+
+def test_notion_import_requires_server_configuration(monkeypatch) -> None:
+    monkeypatch.delenv("NOTION_TOKEN", raising=False)
+    monkeypatch.delenv("NOTION_DATABASE_ID", raising=False)
+    response = client.post("/api/notion/import", json={})
+    assert response.status_code == 503

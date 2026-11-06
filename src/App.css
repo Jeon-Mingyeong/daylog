@@ -79,6 +79,8 @@ textarea { min-height: 82px; resize: vertical; }
 .prediction-card { border: 1px solid #b9cec3; border-radius: 12px; padding: 13px 15px; background: #edf5f1; }.prediction-card div { display: flex; gap: 8px; align-items: center; }.prediction-card p { margin: 5px 0 0; color: #65766e; font-size: 12px; }.prediction-card.high-risk { border-color: #ddbda8; background: #fff5ed; }
 .api-note { margin: -5px 0 0; color: #a27159; text-align: center; font-size: 12px; }
 .model-card { background: #f4f1fa; border-color: #e4def0; }.model-card > div { flex: 1; }.train-button { margin-top: 10px; border: 0; border-radius: 9px; padding: 9px 12px; color: #fff; background: #718d80; font-size: 12px; font-weight: 700; }.model-result { margin-top: 9px !important; color: #557064 !important; font-weight: 700; }
+.notion-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.notion-actions button { border: 1px solid #dfe5df; border-radius: 9px; padding: 9px 12px; color: #63766d; background: #fff; font-size: 12px; font-weight: 700; }
 
 @media (max-width: 600px) {
   .topbar { padding-inline: 18px; }.tabs { padding-inline: 18px; }.content { padding-inline: 18px; }
