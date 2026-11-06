@@ -24,6 +24,20 @@ type Entry = {
 
 const storageKey = 'daylog.entries.v1'
 const demoStorageKey = 'daylog.demo.v1'
+const apiBaseUrl = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? ''
+
+type PredictionResult = {
+  impulse_probability: number
+  level: string
+  source: string
+  suggestion: string
+}
+
+type TrainingResult = {
+  trained: boolean
+  training_rows: number
+  estimated_accuracy: number
+}
 const moods = [
   { name: '아주 좋음', icon: '☀️' },
   { name: '좋음', icon: '😊' },
@@ -45,48 +59,86 @@ function loadEntries(): Entry[] {
 }
 
 function createDemoEntries(): Entry[] {
-    const foods = [
-      '귀리 스무디와 요거트',
-      '닭가슴살 샐러드',
-      '비빔밥과 과일',
-      '연어 덮밥과 스무디',
-      '토스트와 바나나',
-      '두부 김치찌개',
-    ]
-    const moods = ['좋음', '아주 좋음', '보통', '좋음', '아주 좋음', '불안함', '보통']
-    const spending = [
-      { item: '유산균 스무디', amount: 6800, category: '식비', purpose: '아침 식사 대용', necessary: true },
-      { item: '온라인 티셔츠', amount: 39000, category: '쇼핑', purpose: '기분 전환용 충동 구매', necessary: false },
-      { item: '헬스용 요거트', amount: 12500, category: '식비', purpose: '식단 관리에 필요', necessary: true },
-      { item: '충전용 책', amount: 18000, category: '문화', purpose: '관심 분야 독서', necessary: true },
-      { item: '세일 운동화', amount: 78000, category: '쇼핑', purpose: '예전부터 필요했던 운동화', necessary: true },
-      { item: '디저트와 커피', amount: 14500, category: '식비', purpose: '지친 오후 기분 전환', necessary: false },
-      { item: '채소 도시락', amount: 9200, category: '식비', purpose: '점심 식사', necessary: true },
-    ]
+  const foods = [
+    '귀리 스무디와 요거트',
+    '닭가슴살 샐러드',
+    '비빔밥과 과일',
+    '연어 덮밥과 스무디',
+    '토스트와 바나나',
+    '두부 김치찌개',
+  ]
+  const moods = ['좋음', '아주 좋음', '보통', '좋음', '아주 좋음', '불안함', '보통']
+  const spending = [
+    { item: '유산균 스무디', amount: 6800, category: '식비', purpose: '아침 식사 대용', necessary: true },
+    { item: '온라인 티셔츠', amount: 39000, category: '쇼핑', purpose: '기분 전환용 충동 구매', necessary: false },
+    { item: '헬스용 요거트', amount: 12500, category: '식비', purpose: '식단 관리에 필요', necessary: true },
+    { item: '충전용 책', amount: 18000, category: '문화', purpose: '관심 분야 독서', necessary: true },
+    { item: '세일 운동화', amount: 78000, category: '쇼핑', purpose: '예전부터 필요했던 운동화', necessary: true },
+    { item: '디저트와 커피', amount: 14500, category: '식비', purpose: '지친 오후 기분 전환', necessary: false },
+    { item: '채소 도시락', amount: 9200, category: '식비', purpose: '점심 식사', necessary: true },
+  ]
 
-    return Array.from({ length: 14 }, (_, index) => {
-      const date = new Date()
-      date.setDate(date.getDate() - index)
-      const spendingIndex = index % spending.length
-      const hasSpending = index % 3 !== 2
+  return Array.from({ length: 14 }, (_, index) => {
+    const date = new Date()
+    date.setDate(date.getDate() - index)
+    const spendingIndex = index % spending.length
+    const hasSpending = index % 3 !== 2
 
-      return {
-        id: `demo-${index}-${date.getTime()}`,
-        date: date.toISOString().slice(0, 10),
-        food: foods[index % foods.length],
-        sleepTime: index % 4 === 0 ? '00:30' : index % 4 === 1 ? '23:45' : '22:50',
-        wakeTime: index % 4 === 0 ? '07:45' : '07:00',
-        mood: moods[index % moods.length],
-        health: 5 + (index % 5),
-        note: index % 4 === 0 ? '늦게 잠들었지만 오전에는 집중이 잘됐다.' : '',
-        spending: hasSpending
-          ? {
-              ...spending[spendingIndex],
-              necessary: index % 7 === 1 ? false : spending[spendingIndex].necessary,
-            }
-          : null,
-      }
-    })
+    return {
+      id: `demo-${index}-${date.getTime()}`,
+      date: date.toISOString().slice(0, 10),
+      food: foods[index % foods.length],
+      sleepTime: index % 4 === 0 ? '00:30' : index % 4 === 1 ? '23:45' : '22:50',
+      wakeTime: index % 4 === 0 ? '07:45' : '07:00',
+      mood: moods[index % moods.length],
+      health: 5 + (index % 5),
+      note: index % 4 === 0 ? '늦게 잠들었지만 오전에는 집중이 잘됐다.' : '',
+      spending: hasSpending
+        ? {
+            ...spending[spendingIndex],
+            necessary: index % 7 === 1 ? false : spending[spendingIndex].necessary,
+          }
+        : null,
+    }
+  })
+}
+
+async function postJson(path: string, body?: unknown, method: 'GET' | 'POST' = 'POST') {
+  if (!apiBaseUrl || typeof fetch === 'undefined') return null
+  const response = await fetch(`${apiBaseUrl}${path}`, {
+    method,
+    headers: method === 'GET' ? undefined : { 'Content-Type': 'application/json' },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  })
+  if (!response.ok) {
+    const detail = await response.json().catch(() => null)
+    throw new Error(detail?.detail?.message ?? `API request failed: ${response.status}`)
+  }
+  return response.json()
+}
+
+function sleepHours(entry: Pick<Entry, 'sleepTime' | 'wakeTime'>) {
+  const [sleepHour, sleepMinute] = entry.sleepTime.split(':').map(Number)
+  const [wakeHour, wakeMinute] = entry.wakeTime.split(':').map(Number)
+  let minutes = wakeHour * 60 + wakeMinute - (sleepHour * 60 + sleepMinute)
+  if (minutes < 0) minutes += 24 * 60
+  return minutes / 60
+}
+
+function toApiEntry(entry: Entry) {
+  return {
+    id: entry.id,
+    date: entry.date,
+    food: entry.food,
+    sleepTime: entry.sleepTime,
+    wakeTime: entry.wakeTime,
+    mood: entry.mood,
+    health: entry.health,
+    category: entry.spending?.category ?? null,
+    amount: entry.spending?.amount ?? 0,
+    necessary: entry.spending?.necessary ?? null,
+    purpose: entry.spending?.purpose ?? null,
+  }
 }
 
 function App() {
@@ -107,6 +159,10 @@ function App() {
   const [category, setCategory] = useState('식비')
   const [purpose, setPurpose] = useState('')
   const [necessary, setNecessary] = useState(true)
+  const [prediction, setPrediction] = useState<PredictionResult | null>(null)
+  const [predictionError, setPredictionError] = useState('')
+  const [trainingResult, setTrainingResult] = useState<TrainingResult | null>(null)
+  const [trainingError, setTrainingError] = useState('')
 
   useEffect(() => {
     localStorage.setItem(storageKey, JSON.stringify(entries))
@@ -161,7 +217,7 @@ function App() {
     }
   }, [entries])
 
-  function handleSubmit(event: FormEvent) {
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault()
     if (!food.trim()) return
 
@@ -186,6 +242,25 @@ function App() {
     }
 
     setEntries((current) => [entry, ...current])
+    setPrediction(null)
+    setPredictionError('')
+
+    try {
+      await postJson('/api/entries', toApiEntry(entry))
+      if (entry.spending) {
+        const result = await postJson('/api/predict/impulse', {
+          mood: entry.mood,
+          health: entry.health,
+          sleep_hours: sleepHours(entry),
+          category: entry.spending.category,
+          amount: entry.spending.amount,
+        }) as PredictionResult | null
+        setPrediction(result)
+      }
+    } catch (error) {
+      setPredictionError(error instanceof Error ? error.message : 'ML 서버에 연결할 수 없습니다.')
+    }
+
     setFood('')
     setNote('')
     setItem('')
@@ -206,6 +281,7 @@ function App() {
       const withoutDemos = current.filter((entry) => !entry.id.startsWith('demo-'))
       return [...demos, ...withoutDemos]
     })
+    void Promise.all(demos.map((entry) => postJson('/api/entries', toApiEntry(entry)).catch(() => null)))
     localStorage.setItem(demoStorageKey, 'true')
     setActiveTab('history')
   }
@@ -213,6 +289,18 @@ function App() {
   function removeDemoEntries() {
     setEntries((current) => current.filter((entry) => !entry.id.startsWith('demo-')))
     localStorage.removeItem(demoStorageKey)
+  }
+
+  async function trainPersonalModel() {
+    setTrainingResult(null)
+    setTrainingError('')
+    try {
+      await Promise.all(entries.map((entry) => postJson('/api/entries', toApiEntry(entry)).catch(() => null)))
+      const result = await postJson('/api/train') as TrainingResult | null
+      if (result) setTrainingResult(result)
+    } catch (error) {
+      setTrainingError(error instanceof Error ? error.message : '모델을 학습할 수 없습니다.')
+    }
   }
 
   return (
@@ -322,6 +410,13 @@ function App() {
 
           <button className="save-button" type="submit">오늘 기록 저장하기</button>
           {saved && <p className="saved-toast" role="status">기록이 저장되었습니다</p>}
+          {prediction && (
+            <section className={`prediction-card ${prediction.level === '높음' ? 'high-risk' : ''}`}>
+              <div><span>🤖</span><strong>충동 구매 위험: {prediction.level}</strong></div>
+              <p>{Math.round(prediction.impulse_probability * 100)}% · {prediction.suggestion}</p>
+            </section>
+          )}
+          {predictionError && <p className="api-note">{predictionError}</p>}
         </form>
       )}
 
@@ -384,7 +479,23 @@ function App() {
                 : `충동 구매로 기록한 소비가 ${insights.unnecessaryCount}건이며 합계는 ${insights.impulsiveSpent.toLocaleString()}원입니다. 가장 많이 기록된 소비 카테고리는 '${insights.topCategory}'입니다.`}</p>
             </div>
           </div>
-          <p className="privacy-note">🔒 기록은 이 기기의 브라우저에만 저장되며 외부로 전송되지 않습니다.</p>
+          <div className="insight-card model-card">
+            <span className="insight-icon">🧠</span>
+            <div>
+              <h2>나만의 예측 모델</h2>
+              <p>기록을 Python ML 서버로 보내 개인 Logistic Regression 모델을 학습합니다.</p>
+              <button type="button" className="train-button" onClick={() => void trainPersonalModel()}>
+                개인 모델 학습하기
+              </button>
+              {trainingResult && (
+                <p className="model-result">
+                  학습 완료 · {trainingResult.training_rows}개 기록 · 추정 정확도 {Math.round(trainingResult.estimated_accuracy * 100)}%
+                </p>
+              )}
+              {trainingError && <p className="api-note">{trainingError}</p>}
+            </div>
+          </div>
+          <p className="privacy-note">🔒 기록은 이 기기의 브라우저에 저장되며, ML API 연결 시 분석을 위해 서버로 동기화될 수 있습니다.</p>
         </section>
       )}
     </main>

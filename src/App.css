@@ -76,6 +76,9 @@ textarea { min-height: 82px; resize: vertical; }
 .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }.stat-grid article { min-height: 120px; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 1px solid #e7eae4; border-radius: 14px; background: #fff; }.stat-grid article span { font-size: 21px; }.stat-grid small { margin: 7px 0 3px; color: #98a29e; }.stat-grid strong { font-size: 17px; }
 .insight-card { display: flex; gap: 14px; align-items: flex-start; border: 1px solid #e4e9e4; border-radius: 14px; padding: 18px; background: #f0f5f2; }.insight-card.warm { background: #fff8f2; border-color: #f0e3d7; }.insight-card h2 { margin: 0 0 5px; font-size: 16px; }.insight-card p { margin: 0; color: #77847f; font-size: 13px; line-height: 1.65; }.insight-icon { font-size: 20px; }
 .privacy-note { text-align: center; color: #9aa49f; font-size: 12px; }
+.prediction-card { border: 1px solid #b9cec3; border-radius: 12px; padding: 13px 15px; background: #edf5f1; }.prediction-card div { display: flex; gap: 8px; align-items: center; }.prediction-card p { margin: 5px 0 0; color: #65766e; font-size: 12px; }.prediction-card.high-risk { border-color: #ddbda8; background: #fff5ed; }
+.api-note { margin: -5px 0 0; color: #a27159; text-align: center; font-size: 12px; }
+.model-card { background: #f4f1fa; border-color: #e4def0; }.model-card > div { flex: 1; }.train-button { margin-top: 10px; border: 0; border-radius: 9px; padding: 9px 12px; color: #fff; background: #718d80; font-size: 12px; font-weight: 700; }.model-result { margin-top: 9px !important; color: #557064 !important; font-weight: 700; }
 
 @media (max-width: 600px) {
   .topbar { padding-inline: 18px; }.tabs { padding-inline: 18px; }.content { padding-inline: 18px; }

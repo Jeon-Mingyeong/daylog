@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sqlite3
+import os
 from contextlib import contextmanager
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -28,7 +29,16 @@ async def lifespan(_: FastAPI):
 app = FastAPI(title="Daylog ML API", version="0.1.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:4173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:4173",
+        "https://jeon-mingyeong.github.io",
+        *[
+            origin.strip()
+            for origin in os.getenv("DAYLOG_CORS_ORIGINS", "").split(",")
+            if origin.strip()
+        ],
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
